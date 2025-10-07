@@ -1,0 +1,78 @@
+#!/bin/bash
+
+while true; do
+    read -p "Введите номер сетевого интерфейса, где 1 - lo (loopback), а 2 - enp0s3 (сетевой интерфейс): " num
+
+    case $num in
+        1)
+            IFACE="lo"
+            echo "Выбран интерфейс: $IFACE (loopback)"
+            break
+            ;;
+        2)
+            IFACE="enp0s3"
+            echo "Выбран интерфейс: $IFACE (сетевой интерфейс)"
+            break
+            ;;
+        *)
+            echo "Ошибка: введите 1 или 2"
+            echo "Попробуйте еще раз."
+            ;;
+    esac
+done
+
+while true; do
+    echo "--------------------------------------"
+    echo " Меню управления сетью ($IFACE):"
+    echo "1) Информация о сетевой карте"
+    echo "2) Информация о текущей IPv4 конфигурации"
+    echo "3) Настроить статическую конфигурацию (сценарий 1)"
+    echo "4) Настроить динамическую конфигурацию (сценарий 2)"
+    echo "5) Выход"
+    echo "--------------------------------------"
+    read -p "Ваш выбор: " choice
+    echo "ПАРТИЯ ГОРДИТСЯ ТОБОЙ!!!"
+
+    case $choice in
+        1)
+            echo ">>> Информация о сетевой карте:"
+            ethtool "$IFACE" 2>/dev/null | grep -E "Speed|Duplex|Link detected" # утилита для отображения и изменения параметров сетевых драйверов и оборудования. grep регулярные выражения -E расширение
+            MAC=$(cat /sys/class/net/$IFACE/address)
+            MODEL=$(ethtool -i "$IFACE" 2>/dev/null | grep "driver" | awk '{print $2}') # -i отображает информацию о драйвере
+            echo "MAC-адрес: $MAC"
+            echo "Драйвер: $MODEL"
+            ;;
+        2)
+            echo ">>> Текущая IPv4 конфигурация:"
+            ip -4 addr show dev "$IFACE" | grep inet # -4 отображает только IPv4, без IPv6. dev - device(стетвой интерфейс). inet - ip-адрес
+            ip route show default 2>/dev/null | grep "$IFACE" # показывает маршрут по умолчанию (default gateway)
+            echo "DNS серверы:"
+            resolvectl dns "$IFACE" 2>/dev/null || cat /etc/resolv.conf | grep nameserver # утилита для управления системным резолвером (DNS) в системах, использующих systemd-resolved(предоставляет централизованное управление DNS-настройками для всей системы)
+            # или ищем в resolv.conf (традиционный файл с DNS-серверами) и ищем строки содержащие nameserver
+            ;;
+        3)
+            echo ">>> Настройка статической конфигурации..."
+            sudo ip addr flush dev "$IFACE" # flush зачищает ip-адреса на интерфейсе
+            sudo ip addr add 10.100.0.2/24 dev "$IFACE" 
+            sudo ip link set "$IFACE" up # Поднимает интерфейс, он может остаться в DOWN и не работать
+            sudo ip route add default via 10.100.0.1
+            sudo resolvectl dns "$IFACE" 8.8.8.8 2>/dev/null || echo "nameserver 8.8.8.8"
+            echo "Статическая конфигурация применена."
+            echo "ПАРТИЯ ВЫДАТЬ ОДНА КОШКА-ЖЕНА"
+            ;;
+        4)
+            echo ">>> Настройка DHCP..."
+            sudo ip addr flush dev "$IFACE"
+            sudo dhclient -r "$IFACE" 2>/dev/null # утилита DHCP (Dynamic Host Configuration Protocol), которая автоматически получает сетевые настройки от DHCP-сервера. -r (release) - для освобождения текущего IP-адреса
+            sudo dhclient "$IFACE"
+            echo "Динамическая конфигурация применена."
+            ;;
+        5)
+            echo "Выход."
+            exit 0
+            ;;
+        *)
+            echo "Неверный выбор!"
+            ;;
+    esac
+done
