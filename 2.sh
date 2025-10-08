@@ -18,6 +18,8 @@ echo "2. Создание виртуального интерфейса br0:"
 sudo nmcli con add type bridge ifname br0 con-name br0
 sudo nmcli con modify br0 ipv4.addresses 10.100.0.3/24
 sudo nmcli con modify br0 ipv4.method manual
+# связь между физическим интерфейсом и bridge
+sudo nmcli con add type bridge-slave ifname enp0s3 master br0
 sudo nmcli con up br0
 
 # 3. Проверка связи между интерфейсами
