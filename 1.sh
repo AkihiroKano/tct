@@ -1,7 +1,7 @@
 #!/bin/bash
 
 while true; do
-    read -p "Введите номер сетевого интерфейса, где 1 - lo (loopback), 2 - enp0s3 (сетевой интерфейс), а 2 - enp0s8 (внутренняя сеть): " num
+    read -p "Введите номер сетевого интерфейса, где 1 - lo (loopback), 2 - enp0s3 (сетевой интерфейс): " num
 
     case $num in
         1)
@@ -12,11 +12,6 @@ while true; do
         2)
             IFACE="enp0s3"
             echo "Выбран интерфейс: $IFACE (сетевой интерфейс)"
-            break
-            ;;
-        3)
-            IFACE="enp0s8"
-            echo "Выбран интерфейс: $IFACE (внутренняя сеть)"
             break
             ;;
         *)
