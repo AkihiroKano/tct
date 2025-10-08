@@ -56,11 +56,11 @@ while true; do
                 echo ">>> Настройка статической конфигурации..."
                 sudo ip link set "$IFACE" down
                 sudo ip addr flush dev "$IFACE" # flush зачищает ip-адреса на интерфейсе
-                sudo ip link set "$IFACE" up # Поднимает интерфейс
-                sleep 5
                 sudo ip addr add 10.100.0.2/24 dev "$IFACE"
-                sudo ip route add default via 10.100.0.1
                 sudo resolvectl dns "$IFACE" 8.8.8.8 2>/dev/null || echo "nameserver 8.8.8.8"
+                sudo ip link set "$IFACE" up 2>/dev/null
+                sleep 1
+                sudo ip route add default via 10.100.0.1
                 echo "Статическая конфигурация применена."
             fi
             ;;
@@ -72,7 +72,8 @@ while true; do
                 sudo ip link set "$IFACE" down 2>/dev/null
                 sudo ip addr flush dev "$IFACE" 2>/dev/null
                 sudo dhclient -r "$IFACE" 2>/dev/null # утилита DHCP (Dynamic Host Configuration Protocol), которая автоматически получает сетевые настройки от DHCP-сервера. -r (release) - для освобождения текущего IP-адреса
-                sleep 2
+                sudo ip link set "$IFACE" up 2>/dev/null
+                sleep 1
                 sudo dhclient -v "$IFACE" 2>/dev/null # -v для лучшей диагностики
                 echo "Динамическая конфигурация применена."
             fi
