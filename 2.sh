@@ -12,6 +12,8 @@ sudo nmcli con modify static-enp0s3 ipv4.dns 8.8.8.8
 sudo nmcli con modify static-enp0s3 ipv4.method manual
 sudo nmcli con up static-enp0s3
 
+sleep 2
+
 # 2. Создание виртуального интерфейса br0
 echo "2. Создание виртуального интерфейса br0:"
 # bridge — тип интерфейса мост, позволяет объединять несколько интерфейсов
@@ -21,6 +23,8 @@ sudo nmcli con modify br0 ipv4.method manual
 # связь между физическим интерфейсом и bridge
 sudo nmcli con add type bridge-slave ifname enp0s3 master br0
 sudo nmcli con up br0
+
+sleep 2
 
 # 3. Проверка связи между интерфейсами
 echo "3. Проверка связи между интерфейсами:"
