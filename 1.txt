@@ -56,10 +56,10 @@ while true; do
                 echo ">>> Настройка статической конфигурации..."
                 sudo ip link set "$IFACE" down
                 sudo ip addr flush dev "$IFACE" # flush зачищает ip-адреса на интерфейсе
-                sudo ip addr add 10.100.0.2/24 dev "$IFACE"
-                sudo resolvectl dns "$IFACE" 8.8.8.8 2>/dev/null || echo "nameserver 8.8.8.8"
                 sudo ip link set "$IFACE" up 2>/dev/null
                 sleep 1
+                sudo ip addr add 10.100.0.2/24 dev "$IFACE"
+                sudo resolvectl dns "$IFACE" 8.8.8.8 2>/dev/null || echo "nameserver 8.8.8.8"
                 sudo ip route add default via 10.100.0.1
                 echo "Статическая конфигурация применена."
             fi
