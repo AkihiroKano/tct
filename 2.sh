@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Сначала удаляем старые соединения чтобы избежать конфликтов
+sudo nmcli con delete br0 2>/dev/null || true
+sudo nmcli con delete static-enp0s3 2>/dev/null || true
+
 # 1. Настройка физического интерфейса
 echo "1. Настройка физического интерфейса enp0s3:"
 # nmcli — утилита NetworkManager для управления сетевыми соединениями. con = connection работает с соединениями
@@ -12,7 +16,7 @@ sudo nmcli con modify static-enp0s3 ipv4.dns 8.8.8.8
 sudo nmcli con modify static-enp0s3 ipv4.method manual
 sudo nmcli con up static-enp0s3
 
-sleep 2
+sleep 3
 
 # 2. Создание виртуального интерфейса br0
 echo "2. Создание виртуального интерфейса br0:"
@@ -24,10 +28,16 @@ sudo nmcli con modify br0 ipv4.method manual
 sudo nmcli con add type bridge-slave ifname enp0s3 master br0
 sudo nmcli con up br0
 
-sleep 2
+sleep 5
 
 # 3. Проверка связи между интерфейсами
 echo "3. Проверка связи между интерфейсами:"
+# Проверяем что у интерфейсов правильные IP
+echo "IP адрес enp0s3:"
+ip addr show enp0s3 | grep inet
+echo "IP адрес br0:"
+ip addr show br0 | grep inet
+
 # -c 4 отправка 4 пакетов. -I  указывает через какой интерфейс отправлять пакеты
 ping -c 4 -I enp0s3 10.100.0.3 # реальный интерфейс
 ping -c 4 -I br0 10.100.0.2 # виртуальный интерфейс
