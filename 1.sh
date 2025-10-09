@@ -35,22 +35,22 @@ while true; do
     case $choice in
         1)
             echo ">>> Информация о сетевой карте:"
-    # утилита для отображения и изменения параметров сетевых драйверов и оборудования. grep регулярные выражения -E расширение
+# утилита для отображения и изменения параметров сетевых драйверов и оборудования. grep регулярные выражения -E расширение
             ethtool "$IFACE" 2>/dev/null | grep -E "Speed|Duplex|Link detected" 
             MAC=$(cat /sys/class/net/$IFACE/address)
-    # -i отображает информацию о драйвере
+# -i отображает информацию о драйвере
             MODEL=$(ethtool -i "$IFACE" 2>/dev/null | grep "driver" | awk '{print $2}')
             echo "MAC-адрес: $MAC"
             echo "Драйвер: $MODEL"
             ;;
         2)
             echo ">>> Текущая IPv4 конфигурация:"
-    # -4 отображает только IPv4, без IPv6. dev - device(стетвой интерфейс). inet - ip-адрес
+# -4 отображает только IPv4, без IPv6. dev - device(стетвой интерфейс). inet - ip-адрес
             ip -4 addr show dev "$IFACE" | grep inet 
-    # показывает маршрут по умолчанию (default gateway)
+# показывает маршрут по умолчанию (default gateway)
             ip route show default 2>/dev/null | grep "$IFACE" 
             echo "DNS серверы:"
-    # для управления системным резолвером(DNS) в системах, использующих systemd-resolved(предоставляет централизованное управление DNS-настройками для всей системы)
+# для управления системным резолвером(DNS) в системах, использующих systemd-resolved(предоставляет централизованное управление DNS-настройками для всей системы)
             resolvectl dns "$IFACE" 2>/dev/null || cat /etc/resolv.conf | grep nameserver 
             ;;
         3)
@@ -59,7 +59,8 @@ while true; do
             else
                 echo ">>> Настройка статической конфигурации..."
                 sudo ip link set "$IFACE" down
-                sudo ip addr flush dev "$IFACE" # flush зачищает ip-адреса на интерфейсе
+# flush зачищает ip-адреса на интерфейсе
+                sudo ip addr flush dev "$IFACE" 
                 sudo ip link set "$IFACE" up 2>/dev/null
                 sleep 3
                 sudo ip addr add 10.100.0.2/24 dev "$IFACE"
@@ -75,10 +76,11 @@ while true; do
                 echo ">>> Настройка DHCP..."
                 sudo ip link set "$IFACE" down 2>/dev/null
                 sudo ip addr flush dev "$IFACE" 2>/dev/null
-                sudo dhclient -r "$IFACE" 2>/dev/null # утилита DHCP (Dynamic Host Configuration Protocol), которая автоматически получает сетевые настройки от DHCP-сервера. -r (release) - для освобождения текущего IP-адреса
+# утилита DHCP(Dynamic Host Configuration Protocol), автоматически получает сетевые настройки от DHCP-сервера. -r(release) - освобождает текущий IP-адрес
+                sudo dhclient -r "$IFACE" 2>/dev/null 
                 sudo ip link set "$IFACE" up 2>/dev/null
                 sleep 3
-                sudo dhclient -v "$IFACE" 2>/dev/null # -v для лучшей диагностики
+                sudo dhclient -v "$IFACE" 2>/dev/null 
                 echo "Динамическая конфигурация применена."
             fi
             ;;
